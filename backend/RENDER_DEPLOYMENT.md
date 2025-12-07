@@ -26,7 +26,7 @@ Complete guide to deploy your Election Engagement Platform backend to Render.
 **Build & Deploy Settings:**
 - **Environment:** `Node`
 - **Build Command:** `pnpm install && pnpm build`
-- **Start Command:** `pnpm start`
+- **Start Command:** `pnpm start` ⚠️ **CRITICAL: Make sure this is exactly `pnpm start`, NOT `nom run dev` or `npm run dev`**
 
 **Advanced Settings (Optional):**
 - **Auto-Deploy:** `Yes` (deploys on every push to main branch)
@@ -162,9 +162,10 @@ To disable auto-deploy:
 
 ### Issue: Service Won't Start
 **Solution:**
-- Check start command: `pnpm start`
+- Check start command: `pnpm start` (NOT `nom run dev` or `npm run dev`)
 - Verify `dist/index.js` exists after build
 - Check environment variables are set
+- If you see "nom: command not found", update Start Command in Render settings to `pnpm start`
 
 ### Issue: CORS Errors
 **Solution:**
