@@ -6,30 +6,41 @@ import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { GlobeIcon, CheckCircleIcon } from 'lucide-react';
+
 export function Signup() {
   const navigate = useNavigate();
-  const {
-    signup
-  } = useAuth();
+  const { signup } = useAuth();
+
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     phone: '',
     pin: '',
     confirmPin: ''
   });
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // VALIDATION
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    // Email validation
+
+    // Name
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
+    // Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!emailRegex.test(formData.email)) {
       newErrors.email = 'Invalid email format';
     }
-    // Phone validation
+
+    // Phone
     const phoneRegex = /^[0-9]{10,15}$/;
     const cleanPhone = formData.phone.replace(/\D/g, '');
     if (!formData.phone) {
@@ -37,51 +48,57 @@ export function Signup() {
     } else if (!phoneRegex.test(cleanPhone)) {
       newErrors.phone = 'Phone must be 10-15 digits';
     }
-    // PIN validation
+
+    // PIN
     const pinRegex = /^[0-9]{4,6}$/;
     if (!formData.pin) {
       newErrors.pin = 'PIN is required';
     } else if (!pinRegex.test(formData.pin)) {
       newErrors.pin = 'PIN must be 4-6 digits';
     }
+
     // Confirm PIN
     if (!formData.confirmPin) {
       newErrors.confirmPin = 'Please confirm your PIN';
     } else if (formData.pin !== formData.confirmPin) {
       newErrors.confirmPin = 'PINs do not match';
     }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  // SUBMIT
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+
     setIsLoading(true);
+
     try {
-      await signup(formData.email, formData.phone, formData.pin);
+      await signup(formData.name, formData.email, formData.phone, formData.pin);
       setSuccess(true);
-      // Redirect after success animation
+
       setTimeout(() => {
         navigate('/');
       }, 2000);
+
     } catch (err) {
-      setErrors({
-        submit: 'Signup failed. Please try again.'
-      });
+      setErrors({ submit: 'Signup failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
   };
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow only numbers and basic formatting
     const value = e.target.value.replace(/[^\d\s\-\+\(\)]/g, '');
-    setFormData({
-      ...formData,
-      phone: value
-    });
+    setFormData({ ...formData, phone: value });
   };
+
+  // SUCCESS SCREEN
   if (success) {
-    return <>
+    return (
+      <>
         <SEO title="Account Created" description="Your African Elections account has been created successfully." noindex={true} />
         <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
           <Card className="w-full max-w-md p-8 text-center animate-scale-in">
@@ -96,13 +113,18 @@ export function Signup() {
             </p>
           </Card>
         </div>
-      </>;
+      </>
+    );
   }
-  return <>
+
+  // MAIN SIGNUP FORM
+  return (
+    <>
       <SEO title="Create Account" description="Create your African Elections account to vote, comment, and participate in democratic discussions across Africa." noindex={true} />
 
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8 animate-slide-up">
+
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-3 mb-4">
               <GlobeIcon className="w-10 h-10 text-african-green" />
@@ -117,24 +139,68 @@ export function Signup() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input type="email" label="Email Address" value={formData.email} onChange={e => setFormData({
-            ...formData,
-            email: e.target.value
-          })} placeholder="your@email.com" error={errors.email} required disabled={isLoading} />
 
-            <Input type="tel" label="Phone Number" value={formData.phone} onChange={handlePhoneChange} placeholder="+1 (555) 123-4567" error={errors.phone} required disabled={isLoading} />
+            {/* NAME FIELD */}
+            <Input
+              type="text"
+              label="Full Name"
+              value={formData.name}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Your full name"
+              error={errors.name}
+              required
+              disabled={isLoading}
+            />
 
-            <Input type="password" label="Create PIN (4-6 digits)" value={formData.pin} onChange={e => setFormData({
-            ...formData,
-            pin: e.target.value
-          })} placeholder="••••" error={errors.pin} maxLength={6} required disabled={isLoading} />
+            <Input
+              type="email"
+              label="Email Address"
+              value={formData.email}
+              onChange={e => setFormData({ ...formData, email: e.target.value })}
+              placeholder="your@email.com"
+              error={errors.email}
+              required
+              disabled={isLoading}
+            />
 
-            <Input type="password" label="Confirm PIN" value={formData.confirmPin} onChange={e => setFormData({
-            ...formData,
-            confirmPin: e.target.value
-          })} placeholder="••••" error={errors.confirmPin} maxLength={6} required disabled={isLoading} />
+            <Input
+              type="tel"
+              label="Phone Number"
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              placeholder="+234 812 345 6789"
+              error={errors.phone}
+              required
+              disabled={isLoading}
+            />
 
-            {errors.submit && <p className="text-sm text-african-red">{errors.submit}</p>}
+            <Input
+              type="password"
+              label="Create PIN (4-6 digits)"
+              value={formData.pin}
+              onChange={e => setFormData({ ...formData, pin: e.target.value })}
+              placeholder="••••"
+              error={errors.pin}
+              maxLength={6}
+              required
+              disabled={isLoading}
+            />
+
+            <Input
+              type="password"
+              label="Confirm PIN"
+              value={formData.confirmPin}
+              onChange={e => setFormData({ ...formData, confirmPin: e.target.value })}
+              placeholder="••••"
+              error={errors.confirmPin}
+              maxLength={6}
+              required
+              disabled={isLoading}
+            />
+
+            {errors.submit && (
+              <p className="text-sm text-african-red">{errors.submit}</p>
+            )}
 
             <Button type="submit" variant="primary" className="w-full" disabled={isLoading}>
               {isLoading ? 'Creating Account...' : 'Create Account'}
@@ -156,7 +222,9 @@ export function Signup() {
               discussions and respect community guidelines.
             </p>
           </div>
+
         </Card>
       </div>
-    </>;
+    </>
+  );
 }
